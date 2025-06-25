@@ -1,35 +1,49 @@
-if not script_key then
-    warn("Please define 'script_key' before running.")
+-- FINAL LOADER SCRIPT (VERSION 3 - DIRECT EXECUTION)
+-- This version is simpler and more reliable.
+
+if not script_key or script_key == "" then
+    warn("Authentication Error: Key was not provided in the loader.")
     return
 end
 
 print("Authenticating with key: " .. script_key)
 
--- 1. Get the user's HWID
+-- 1. Get HWID
 local hwid_response = request({ Url = "http://httpbin.org/get", Method = "GET" })
-if not (hwid_response and hwid_response.Body) then
-    warn("Failed to get HWID.") return
-end
+if not (hwid_response and hwid_response.Body) then warn("Auth Error: HWID server failed.") return end
 local headers = game:GetService("HttpService"):JSONDecode(hwid_response.Body).headers
 local user_hwid = headers["Swift-Fingerprint"]
+if not user_hwid then warn("Auth Error: Could not find HWID.") return end
 
-if not user_hwid then
-    warn("Could not retrieve HWID. Your executor may not be supported.")
+print("HWID Found.")
+
+-- 2. Contact Backend
+local verification_url = "https://ojvgeygsskoaayvmluxf.supabase.co/functions/v1/verify-key?key=" .. script_key
+print("Contacting server...")
+
+local success, response = pcall(function()
+    return request({
+        Url = verification_url,
+        Method = "GET",
+        Headers = { ["Swift-Fingerprint"] = user_hwid }
+    })
+end)
+
+-- 3. Handle Response
+if not success then
+    warn("FATAL: Request failed. Error: " .. tostring(response))
     return
 end
 
-print("HWID Found: " .. user_hwid)
-
--- 2. Contact your Supabase backend
--- This is YOUR unique URL. Do not change it.
-local verification_url = "https://ojvgeygsskoaayvmluxf.supabase.co/functions/v1/verify-key?key=" .. script_key
-
-print("Contacting server...")
-local response = request({
-    Url = verification_url,
-    Method = "GET",
-    Headers = {
-        -- Send the user's HWID as a custom header for your server to read
-        ["Swift-Fingerprint"] = user_hwid
-    }
-})
+if response.StatusCode == 200 then
+    print("Authentication successful. Loading script...")
+    local script_code, err = loadstring(response.Body)
+    if script_code then
+        script_code()
+    else
+        warn("Script execution failed: " .. tostring(err))
+    end
+else
+    print("Authentication Failed. Server response:")
+    loadstring(response.Body)()
+end
