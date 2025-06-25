@@ -101,7 +101,8 @@ this bot will live on Replit and run 24/7 to generate keys for you. it's the thi
 * Besides the "main.py" click the plus and add "Secrets".  
 ![image](https://github.com/user-attachments/assets/caa70dd7-63b4-4448-b533-88d36e38199d)  
   
-* Click "+ new secrect" and add these three secrets one by one.  
+* Click "+ new secrect" and add these three secrets one by one.
+
 Secret 1:  
 Name: DISCORD_TOKEN  
 Value: your discord bot token u saved from earlier  
@@ -141,7 +142,7 @@ if you have any qustions ask me on discord ````thatonedudetsts````
 
 
 # uhh i will not be updating this in the future so yeah  
-really hungry and really tried have fun with this!!!
+anyways im really hungry and really tried have fun with this!!!
 
 
 
