@@ -1,0 +1,35 @@
+if not script_key then
+    warn("Please define 'script_key' before running.")
+    return
+end
+
+print("Authenticating with key: " .. script_key)
+
+-- 1. Get the user's HWID
+local hwid_response = request({ Url = "http://httpbin.org/get", Method = "GET" })
+if not (hwid_response and hwid_response.Body) then
+    warn("Failed to get HWID.") return
+end
+local headers = game:GetService("HttpService"):JSONDecode(hwid_response.Body).headers
+local user_hwid = headers["Swift-Fingerprint"]
+
+if not user_hwid then
+    warn("Could not retrieve HWID. Your executor may not be supported.")
+    return
+end
+
+print("HWID Found: " .. user_hwid)
+
+-- 2. Contact your Supabase backend
+-- This is YOUR unique URL. Do not change it.
+local verification_url = "https://ojvgeygsskoaayvmluxf.supabase.co/functions/v1/verify-key?key=" .. script_key
+
+print("Contacting server...")
+local response = request({
+    Url = verification_url,
+    Method = "GET",
+    Headers = {
+        -- Send the user's HWID as a custom header for your server to read
+        ["Swift-Fingerprint"] = user_hwid
+    }
+})
